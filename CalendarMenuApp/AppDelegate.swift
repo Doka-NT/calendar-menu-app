@@ -78,6 +78,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             }
         }
         
+        let quitMenuItem = NSMenuItem(title: "Quit", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
+        menu.addItem(quitMenuItem)
+        
         // Показать меню
         statusItem.menu = menu
         statusItem.button?.performClick(nil) // Показать меню при нажатии на иконку
