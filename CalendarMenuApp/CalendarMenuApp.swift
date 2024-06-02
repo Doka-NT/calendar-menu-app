@@ -6,12 +6,16 @@
 //
 
 import SwiftUI
+import AppKit
+import EventKit
 
 @main
-struct CalendarMenuAppApp: App {
+struct CalendarMenuApp: App {
+    @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
+    
     var body: some Scene {
-        WindowGroup {
-            ContentView()
+        Settings {
+            EmptyView()
         }
     }
 }

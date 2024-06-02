@@ -7,19 +7,23 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		AC83EFE22C0C9A9E00535C65 /* CalendarMenuAppApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC83EFE12C0C9A9E00535C65 /* CalendarMenuAppApp.swift */; };
+		AC83EFE22C0C9A9E00535C65 /* CalendarMenuApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC83EFE12C0C9A9E00535C65 /* CalendarMenuApp.swift */; };
 		AC83EFE42C0C9A9E00535C65 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC83EFE32C0C9A9E00535C65 /* ContentView.swift */; };
 		AC83EFE62C0C9AA300535C65 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = AC83EFE52C0C9AA300535C65 /* Assets.xcassets */; };
 		AC83EFE92C0C9AA400535C65 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = AC83EFE82C0C9AA400535C65 /* Preview Assets.xcassets */; };
+		AC83EFF12C0C9AEB00535C65 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC83EFF02C0C9AEB00535C65 /* AppDelegate.swift */; };
+		AC83EFF32C0C9E4600535C65 /* Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = AC83EFF22C0C9E4600535C65 /* Info.plist */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		AC83EFDE2C0C9A9E00535C65 /* CalendarMenuApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = CalendarMenuApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		AC83EFE12C0C9A9E00535C65 /* CalendarMenuAppApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalendarMenuAppApp.swift; sourceTree = "<group>"; };
+		AC83EFE12C0C9A9E00535C65 /* CalendarMenuApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalendarMenuApp.swift; sourceTree = "<group>"; };
 		AC83EFE32C0C9A9E00535C65 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		AC83EFE52C0C9AA300535C65 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		AC83EFE82C0C9AA400535C65 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		AC83EFEA2C0C9AA400535C65 /* CalendarMenuApp.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = CalendarMenuApp.entitlements; sourceTree = "<group>"; };
+		AC83EFF02C0C9AEB00535C65 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+		AC83EFF22C0C9E4600535C65 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -36,6 +40,7 @@
 		AC83EFD52C0C9A9E00535C65 = {
 			isa = PBXGroup;
 			children = (
+				AC83EFF22C0C9E4600535C65 /* Info.plist */,
 				AC83EFE02C0C9A9E00535C65 /* CalendarMenuApp */,
 				AC83EFDF2C0C9A9E00535C65 /* Products */,
 			);
@@ -52,11 +57,12 @@
 		AC83EFE02C0C9A9E00535C65 /* CalendarMenuApp */ = {
 			isa = PBXGroup;
 			children = (
-				AC83EFE12C0C9A9E00535C65 /* CalendarMenuAppApp.swift */,
+				AC83EFE12C0C9A9E00535C65 /* CalendarMenuApp.swift */,
 				AC83EFE32C0C9A9E00535C65 /* ContentView.swift */,
 				AC83EFE52C0C9AA300535C65 /* Assets.xcassets */,
 				AC83EFEA2C0C9AA400535C65 /* CalendarMenuApp.entitlements */,
 				AC83EFE72C0C9AA400535C65 /* Preview Content */,
+				AC83EFF02C0C9AEB00535C65 /* AppDelegate.swift */,
 			);
 			path = CalendarMenuApp;
 			sourceTree = "<group>";
@@ -129,6 +135,7 @@
 			files = (
 				AC83EFE92C0C9AA400535C65 /* Preview Assets.xcassets in Resources */,
 				AC83EFE62C0C9AA300535C65 /* Assets.xcassets in Resources */,
+				AC83EFF32C0C9E4600535C65 /* Info.plist in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -139,8 +146,9 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				AC83EFF12C0C9AEB00535C65 /* AppDelegate.swift in Sources */,
 				AC83EFE42C0C9A9E00535C65 /* ContentView.swift in Sources */,
-				AC83EFE22C0C9A9E00535C65 /* CalendarMenuAppApp.swift in Sources */,
+				AC83EFE22C0C9A9E00535C65 /* CalendarMenuApp.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -279,6 +287,8 @@
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_LSUIElement = YES;
+				INFOPLIST_KEY_NSCalendarsUsageDescription = "Мы используем ваш календарь для отображения событий на сегодня";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -306,6 +316,8 @@
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_LSUIElement = YES;
+				INFOPLIST_KEY_NSCalendarsUsageDescription = "Мы используем ваш календарь для отображения событий на сегодня";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
