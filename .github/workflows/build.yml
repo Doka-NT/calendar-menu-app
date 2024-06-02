@@ -1,0 +1,52 @@
+name: Build and Release
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  build:
+    name: Build macOS App
+    runs-on: macos-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+        
+      - name: Set up Xcode
+        uses: actions/setup-xcode@v2
+        with:
+          xcode-version: '13.0'
+
+      - name: Build macOS App
+        run: xcodebuild -scheme "CalendarMenuApp" -workspace "CalendarMenuApp.xcodeproj/project.xcworkspace" -configuration Release clean archive -archivePath build/CalendarMenuApp.xcarchive CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO
+
+      - name: Create DMG
+        run: |
+          mkdir -p build/dmg
+          cp -R build/CalendarMenuApp.xcarchive/Products/Applications/*.app build/dmg
+          hdiutil create -volname "CalendarMenuApp" -srcfolder build/dmg -ov -format UDZO build/CalendarMenuApp.dmg
+
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
+          draft: false
+          prerelease: false
+
+      - name: Upload Release Asset
+        id: upload-release-asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: build/CalendarMenuApp.dmg
+          asset_name: CalendarMenuApp.dmg
+          asset_content_type: application/x-diskimage
+
