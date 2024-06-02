@@ -54,9 +54,26 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                         eventTitle += " - \(title)"
                     }
                     
-                    let menuItem = NSMenuItem(title: eventTitle, action: #selector(openEvent(_:)), keyEquivalent: "")
-                    menuItem.representedObject = event
-                    menu.addItem(menuItem)
+                    // Извлекаем URL из описания события
+                    if let description = event.notes,
+                       let url = extractURL(from: description),
+                       let urlString = url.absoluteString.lowercased() as NSString?,
+                       urlString.range(of: "telemost.yandex.ru").location != NSNotFound ||
+                       urlString.range(of: "salutejazz.ru").location != NSNotFound ||
+                       urlString.range(of: "jazz.sber.ru").location != NSNotFound {
+                        
+                        // Добавляем иконку с телефоном к пункту меню
+                        let phoneIcon = NSImage(named: NSImage.touchBarCommunicationVideoTemplateName)
+                        let phoneMenuItem = NSMenuItem(title: eventTitle, action: #selector(openEvent(_:)), keyEquivalent: "")
+                        phoneMenuItem.representedObject = event
+                        phoneMenuItem.image = phoneIcon
+                        menu.addItem(phoneMenuItem)
+                    } else {
+                        // Добавляем обычный пункт меню без иконки
+                        let menuItem = NSMenuItem(title: eventTitle, action: #selector(openEvent(_:)), keyEquivalent: "")
+                        menuItem.representedObject = event
+                        menu.addItem(menuItem)
+                    }
                 }
             }
         }
@@ -66,9 +83,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         statusItem.button?.performClick(nil) // Показать меню при нажатии на иконку
         statusItem.menu = nil // Сбросить меню после показа
     }
-
-
-
     
     func loadEventsForToday() -> [EKEvent] {
         let eventStore = EKEventStore()
@@ -86,7 +100,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         if let event = sender.representedObject as? EKEvent {
             let description = event.notes ?? ""
             if let url = extractURL(from: description) {
-                print(url)
                 NSWorkspace.shared.open(url)
             } else {
                 // Открыть событие в календаре
