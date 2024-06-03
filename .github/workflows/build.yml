@@ -21,7 +21,7 @@ jobs:
           xcode-version: '14.3.1'
 
       - name: Build macOS App
-        run: 'xcodebuild -scheme "CalendarMenuApp" -workspace "CalendarMenuApp.xcodeproj/project.xcworkspace" -configuration Release clean archive -archivePath build/CalendarMenuApp.xcarchive CODE_SIGN_STYLE="Manual" CODE_SIGN_IDENTITY="Apple Development: Your Team ID (66US7746XD)" CODE_SIGNING_REQUIRED=NO'
+        run: 'xcodebuild -scheme "CalendarMenuApp" -workspace "CalendarMenuApp.xcodeproj/project.xcworkspace" -configuration Release clean archive -archivePath build/CalendarMenuApp.xcarchive'
 
       - name: Create DMG
         run: |
