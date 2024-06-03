@@ -55,6 +55,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                     }
                     
                     // Извлекаем URL из описания события
+                    let menuItem: NSMenuItem
                     if let description = event.notes,
                        let url = extractURL(from: description),
                        let urlString = url.absoluteString.lowercased() as NSString?,
@@ -67,17 +68,27 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                         let phoneMenuItem = NSMenuItem(title: eventTitle, action: #selector(openEvent(_:)), keyEquivalent: "")
                         phoneMenuItem.representedObject = event
                         phoneMenuItem.image = phoneIcon
-                        menu.addItem(phoneMenuItem)
+                        menuItem = phoneMenuItem
                     } else {
                         // Добавляем обычный пункт меню без иконки
-                        let menuItem = NSMenuItem(title: eventTitle, action: #selector(openEvent(_:)), keyEquivalent: "")
+                        menuItem = NSMenuItem(title: eventTitle, action: #selector(openEvent(_:)), keyEquivalent: "")
                         menuItem.representedObject = event
-                        menu.addItem(menuItem)
+                        menuItem.indentationLevel = 2
                     }
+                    
+                    if event.endDate < Date() {
+                        menuItem.attributedTitle = NSAttributedString(string: eventTitle, attributes: [.foregroundColor: NSColor.lightGray])
+                    }
+                    
+                    // Добавление кружочка с цветом календаря
+                    let colorCircle = createColorCircle(for: event.calendar)
+                    menu.addItem(menuItem)
                 }
             }
         }
         
+        menu.addItem(NSMenuItem.separator()) // Разделитель между событиями и кнопкой Quit
+
         let quitMenuItem = NSMenuItem(title: "Quit", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
         menu.addItem(quitMenuItem)
         
@@ -122,6 +133,17 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             }
         }
         return nil
+    }
+    
+    func createColorCircle(for calendar: EKCalendar) -> NSImage {
+        let size = NSSize(width: 10, height: 10)
+        let image = NSImage(size: size)
+        image.lockFocus()
+        calendar.color.setFill()
+        let circle = NSBezierPath(ovalIn: NSRect(origin: .zero, size: size))
+        circle.fill()
+        image.unlockFocus()
+        return image
     }
 
 }
