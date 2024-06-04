@@ -8,9 +8,14 @@
 import Foundation
 import AppKit
 import EventKit
+import UserNotifications
 
 class AppDelegate: NSObject, NSApplicationDelegate {
     var statusItem: NSStatusItem!
+    let eventStore = EKEventStore()
+    var notificationCenter: NotificationCenter {
+        return .default
+    }
     
     func applicationDidFinishLaunching(_ notification: Notification) {
         // Создаем элемент строки меню
@@ -20,17 +25,14 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             button.action = #selector(showMenu)
         }
         
-        let eventStore = EKEventStore()
+        // Запрашиваем разрешение на доступ к календарю и отправку уведомлений
+        requestCalendarAccess()
+        requestNotificationAccess()
 
-        eventStore.requestAccess(to: .event) { (granted, error) in
-            if granted {
-                // Доступ предоставлен
-            } else {
-                // Доступ не предоставлен
-                print("Access to calendar was not granted: \(String(describing: error?.localizedDescription))")
-            }
-        }
-
+        // Начинаем наблюдение за изменениями в календаре
+        startObservingCalendarChanges()
+        
+        setupNotificationActions()
     }
     
     @objc func showMenu() {
@@ -65,13 +67,13 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                         
                         // Добавляем иконку с телефоном к пункту меню
                         let phoneIcon = NSImage(named: NSImage.touchBarCommunicationVideoTemplateName)
-                        let phoneMenuItem = NSMenuItem(title: eventTitle, action: #selector(openEvent(_:)), keyEquivalent: "")
+                        let phoneMenuItem = NSMenuItem(title: eventTitle, action: #selector(handleMenuItemClick(_:)), keyEquivalent: "")
                         phoneMenuItem.representedObject = event
                         phoneMenuItem.image = phoneIcon
                         menuItem = phoneMenuItem
                     } else {
                         // Добавляем обычный пункт меню без иконки
-                        menuItem = NSMenuItem(title: eventTitle, action: #selector(openEvent(_:)), keyEquivalent: "")
+                        menuItem = NSMenuItem(title: eventTitle, action: #selector(handleMenuItemClick(_:)), keyEquivalent: "")
                         menuItem.representedObject = event
                         menuItem.indentationLevel = 2
                     }
@@ -110,17 +112,21 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         return events
     }
     
-    @objc func openEvent(_ sender: NSMenuItem) {
-        if let event = sender.representedObject as? EKEvent {
-            let description = event.notes ?? ""
-            if let url = extractURL(from: description) {
-                NSWorkspace.shared.open(url)
-            } else {
-                // Открыть событие в календаре
-                if let eventURL = URL(string: "ical://ekevent/\(event.eventIdentifier)") {
-                    NSWorkspace.shared.open(eventURL)
-                }
+    func openEvent(_ event: EKEvent) {
+        let description = event.notes ?? ""
+        if let url = extractURL(from: description) {
+            NSWorkspace.shared.open(url)
+        } else {
+            // Открыть событие в календаре
+            if let eventURL = URL(string: "ical://ekevent/\(event.eventIdentifier)") {
+                NSWorkspace.shared.open(eventURL)
             }
+        }
+    }
+    
+    @objc func handleMenuItemClick(_ sender: NSMenuItem) {
+        if let event = sender.representedObject as? EKEvent {
+            openEvent(event)
         }
     }
 
@@ -146,4 +152,106 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         return image
     }
 
+    func requestCalendarAccess() {
+        eventStore.requestAccess(to: .event) { [weak self] (granted, error) in
+            guard let self = self else { return }
+            if granted {
+                self.scheduleNotificationsForUpcomingEvents()
+            } else if let error = error {
+                print("Error requesting calendar access: \(error.localizedDescription)")
+            }
+        }
+    }
+
+    func requestNotificationAccess() {
+        UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound, .badge]) { granted, error in
+            if granted {
+                print("Permission granted")
+            } else if let error = error {
+                print("Error requesting authorization: \(error.localizedDescription)")
+            }
+        }
+    }
+
+    func startObservingCalendarChanges() {
+        notificationCenter.addObserver(self,
+                                       selector: #selector(calendarChanged),
+                                       name: .EKEventStoreChanged,
+                                       object: eventStore)
+    }
+
+    @objc func calendarChanged(notification: NSNotification) {
+        // При изменении в календаре, пересчитываем расписание уведомлений
+        scheduleNotificationsForUpcomingEvents()
+    }
+
+    func scheduleNotificationsForUpcomingEvents() {
+        let calendars = eventStore.calendars(for: .event)
+        let oneDayAgo = Date(timeIntervalSinceNow: -24*60*60)
+        let oneDayAfter = Date(timeIntervalSinceNow: 24*60*60)
+
+        let predicate = eventStore.predicateForEvents(withStart: oneDayAgo, end: oneDayAfter, calendars: calendars)
+        let events = eventStore.events(matching: predicate)
+
+        // Удаляем все ранее добавленные уведомления перед добавлением новых
+        UNUserNotificationCenter.current().removeAllPendingNotificationRequests()
+
+        for event in events {
+            scheduleNotification(for: event)
+        }
+    }
+
+    func scheduleNotification(for event: EKEvent) {
+        let content = UNMutableNotificationContent()
+        let title = event.title ?? ""
+        content.title = event.title
+        content.body = "Событие \(title) начинается."
+        content.sound = UNNotificationSound.default
+        content.categoryIdentifier = "EVENT_REMINDER_CATEGORY"
+        content.userInfo = ["eventIdentifier": event.eventIdentifier]
+
+        guard let eventDate = event.startDate else { return }
+        let timeInterval = eventDate.timeIntervalSinceNow
+
+        guard timeInterval > 0 else { return }
+
+        let trigger = UNTimeIntervalNotificationTrigger(timeInterval: timeInterval, repeats: false)
+        let request = UNNotificationRequest(identifier: UUID().uuidString, content: content, trigger: trigger)
+
+        UNUserNotificationCenter.current().add(request) { error in
+            if let error = error {
+                print("Error adding notification: \(error.localizedDescription)")
+            }
+        }
+    }
+
+    
+    func setupNotificationActions() {
+        let viewEventAction = UNNotificationAction(identifier: "VIEW_EVENT",
+                                                   title: "View Event",
+                                                   options: .foreground)
+        let category = UNNotificationCategory(identifier: "EVENT_REMINDER_CATEGORY",
+                                              actions: [viewEventAction],
+                                              intentIdentifiers: [],
+                                              options: [])
+
+        UNUserNotificationCenter.current().setNotificationCategories([category])
+        UNUserNotificationCenter.current().delegate = self
+    }
+}
+
+extension AppDelegate: UNUserNotificationCenterDelegate {
+    func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse, withCompletionHandler completionHandler: @escaping () -> Void) {
+        if response.actionIdentifier != "VIEW_EVENT" {
+            let userInfo = response.notification.request.content.userInfo
+            if let eventID = userInfo["eventIdentifier"] as? String, let event = eventStore.event(withIdentifier: eventID) {
+                handleEvent(event)
+            }
+        }
+        completionHandler()
+    }
+
+    func handleEvent(_ event: EKEvent) {
+        openEvent(event)
+    }
 }
