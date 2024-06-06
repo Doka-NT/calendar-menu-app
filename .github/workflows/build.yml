@@ -22,7 +22,7 @@ jobs:
           xcode-version: '14.3.1'
 
       - name: Build macOS App
-        run: 'xcodebuild -scheme "CalendarMenuApp" -workspace "CalendarMenuApp.xcodeproj/project.xcworkspace" -configuration Release clean archive -archivePath build/CalendarMenuApp.xcarchive'
+        run: 'xcodebuild -scheme "CalendarMenuApp" -workspace "CalendarMenuApp.xcodeproj/project.xcworkspace" -derivedDataPath build'
 
       - name: Create DMG
         run: |
