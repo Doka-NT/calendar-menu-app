@@ -211,7 +211,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         content.userInfo = ["eventIdentifier": event.eventIdentifier]
 
         guard let eventDate = event.startDate else { return }
-        let timeInterval = eventDate.timeIntervalSinceNow
+        let timeInterval = eventDate.timeIntervalSinceNow - 60
 
         guard timeInterval > 0 else { return }
 
