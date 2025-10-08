@@ -58,9 +58,13 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                     
                     // Извлекаем URL из описания события
                     let menuItem: NSMenuItem
+                    
+                    let notes = event.notes
+                    
                     if let description = event.notes,
                        let url = extractURL(from: description),
                        let urlString = url.absoluteString.lowercased() as NSString?,
+                       urlString.range(of: "telemost.360.yandex.ru").location != NSNotFound ||
                        urlString.range(of: "telemost.yandex.ru").location != NSNotFound ||
                        urlString.range(of: "salutejazz.ru").location != NSNotFound ||
                        urlString.range(of: "jazz.sber.ru").location != NSNotFound {
@@ -131,7 +135,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func extractURL(from text: String) -> URL? {
-        let patterns = ["https://telemost.yandex.ru", "https://salutejazz.ru", "https://jazz.sber.ru"]
+        let patterns = ["https://telemost.yandex.ru", "https://telemost.360.yandex.ru", "https://salutejazz.ru", "https://jazz.sber.ru"]
         for pattern in patterns {
             if let range = text.range(of: pattern) {
                 let urlString = text[range.lowerBound...].components(separatedBy: .whitespacesAndNewlines).first ?? ""
