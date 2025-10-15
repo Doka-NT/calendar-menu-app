@@ -10,6 +10,16 @@
 ## Цель
 Испытание возможностей платформы ChatGPT
 
+## Сборка и CI/CD
+
+Проект настроен для автоматической сборки через GitHub Actions:
+
+- **Автоматическая сборка**: При каждом push в `main`/`master` и при создании pull request
+- **Релизы**: При создании тега версии (например, `v1.0.0`)
+- **Артефакты**: DMG-файл и .app bundle доступны для скачивания в разделе Actions
+
+Подробнее о workflows см. в [.github/workflows/README.md](.github/workflows/README.md)
+
 ## Лог чата
 
 Лог чата доступен по ссылке: https://chatgpt.com/share/9eaca5ed-ea34-48a5-a4eb-53529445d826
