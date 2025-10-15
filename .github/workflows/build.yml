@@ -28,25 +28,29 @@ jobs:
       - name: Show Xcode version
         run: xcodebuild -version
       
-      - name: Build and Archive
+      - name: Build App
         run: |
           xcodebuild \
             -scheme "CalendarMenuApp" \
             -project CalendarMenuApp.xcodeproj \
             -configuration Release \
-            -archivePath build/CalendarMenuApp.xcarchive \
-            clean archive \
+            -derivedDataPath build/DerivedData \
+            clean build \
             CODE_SIGN_IDENTITY="" \
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGNING_ALLOWED=NO
       
-      - name: Export Archive
+      - name: Locate built app
         run: |
-          xcodebuild \
-            -exportArchive \
-            -archivePath build/CalendarMenuApp.xcarchive \
-            -exportPath build/Release \
-            -exportOptionsPlist exportOptions.plist
+          find build/DerivedData -name "*.app" -type d
+          APP_PATH=$(find build/DerivedData -name "CalendarMenuApp.app" -type d | head -n 1)
+          echo "APP_PATH=$APP_PATH" >> $GITHUB_ENV
+          echo "Found app at: $APP_PATH"
+      
+      - name: Prepare Release directory
+        run: |
+          mkdir -p build/Release
+          cp -R "$APP_PATH" build/Release/CalendarMenuApp.app
       
       - name: Create DMG
         run: |
