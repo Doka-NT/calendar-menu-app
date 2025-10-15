@@ -56,6 +56,12 @@ jobs:
             -ov -format UDZO \
             dist/CalendarMenuApp.dmg
       
+      - name: Create App ZIP
+        run: |
+          cd build/Release
+          zip -r ../../dist/CalendarMenuApp.app.zip CalendarMenuApp.app
+          cd ../..
+      
       - name: Get tag name
         id: get_tag
         run: |
@@ -74,5 +80,6 @@ jobs:
           prerelease: false
           files: |
             dist/CalendarMenuApp.dmg
+            dist/CalendarMenuApp.app.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

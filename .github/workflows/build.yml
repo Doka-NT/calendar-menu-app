@@ -67,9 +67,15 @@ jobs:
           path: dist/CalendarMenuApp.dmg
           retention-days: 30
       
+      - name: Create App ZIP
+        run: |
+          cd build/Release
+          zip -r ../../dist/CalendarMenuApp.app.zip CalendarMenuApp.app
+          cd ../..
+      
       - name: Upload App artifact
         uses: actions/upload-artifact@v4
         with:
           name: CalendarMenuApp-app
-          path: build/Release/CalendarMenuApp.app
+          path: dist/CalendarMenuApp.app.zip
           retention-days: 30
