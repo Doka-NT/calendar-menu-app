@@ -36,9 +36,7 @@ jobs:
             -configuration Release \
             -derivedDataPath build/DerivedData \
             clean build \
-            CODE_SIGN_IDENTITY="" \
-            CODE_SIGNING_REQUIRED=NO \
-            CODE_SIGNING_ALLOWED=NO
+            CODE_SIGN_IDENTITY="-"
       
       - name: Locate built app
         run: |

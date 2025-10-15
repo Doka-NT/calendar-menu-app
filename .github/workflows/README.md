@@ -59,9 +59,9 @@ To create a release:
 The workflows use the following build settings:
 - **Scheme:** CalendarMenuApp
 - **Configuration:** Release
-- **Code Signing:** Disabled (for CI builds)
+- **Code Signing:** Ad-hoc signing (self-signed) using `-` identity
 
-The built app is not code-signed in the CI environment. For distribution, you'll need to sign the app manually or configure code signing in the workflow.
+The built app is ad-hoc signed in the CI environment, which prevents the "damaged application" error on macOS while not requiring developer certificates. Ad-hoc signing creates a self-signed certificate that satisfies macOS security requirements for locally-built applications.
 
 ## Requirements
 
@@ -72,5 +72,6 @@ The built app is not code-signed in the CI environment. For distribution, you'll
 ## Notes
 
 - Build artifacts are retained for 30 days
-- The workflow disables code signing to allow builds without certificates
+- The workflow uses ad-hoc code signing (`-` identity) to prevent "damaged app" errors
 - DMG files are created using `hdiutil` with UDZO compression
+- Ad-hoc signing does not require developer certificates but provides basic code signature validation
