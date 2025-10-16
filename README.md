@@ -1,6 +1,6 @@
 # Calendar Menu App
 
-![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/Doka-NT/calendar-menu-app/build.yml?branch=master) 
+![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/Doka-NT/calendar-menu-app/ci.yml?branch=master) 
 ![GitHub issues](https://img.shields.io/github/issues/Doka-NT/calendar-menu-app)
 ![GitHub forks](https://img.shields.io/github/forks/Doka-NT/calendar-menu-app?style=social)
 ![GitHub stars](https://img.shields.io/github/stars/Doka-NT/calendar-menu-app?style=social)
