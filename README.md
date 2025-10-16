@@ -1,25 +1,68 @@
 # Calendar Menu App
 
-Проект полностью написан с использование ChatGPT 4o и ChatGPT 3.5-Turbo
+![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/Doka-NT/calendar-menu-app/build.yml?branch=master) 
+![GitHub issues](https://img.shields.io/github/issues/Doka-NT/calendar-menu-app)
+![GitHub forks](https://img.shields.io/github/forks/Doka-NT/calendar-menu-app?style=social)
+![GitHub stars](https://img.shields.io/github/stars/Doka-NT/calendar-menu-app?style=social)
+![GitHub watchers](https://img.shields.io/github/watchers/Doka-NT/calendar-menu-app?style=social)
+![GitHub last commit](https://img.shields.io/github/last-commit/Doka-NT/calendar-menu-app)
 
-## Описание
-Добавляет в строку меню календарь для отображения событий на текущий день.
+Calendar Menu App is a macOS application that adds a calendar to your menu bar, displaying events scheduled for the current day. Events containing links to audio or video conferences open directly in the browser, while other events open in the calendar.
 
-События, содержащие ссылки на аудио/видео-конференции будут открываться сразу в браузере. Остальные события - в календаре
+## Features
 
-## Цель
-Испытание возможностей платформы ChatGPT
+- **Menu Bar Integration**: Displays a list of today's events directly in the macOS menu bar.
+- **Event Quick Actions**: Events with conference links open in the browser, and others open in the calendar app.
+- **Notifications**: Timely reminders for upcoming events.
+- **Customizable UI**: Events are styled with their respective calendar colors and icons.
 
-## Сборка и CI/CD
+## Technologies Used
 
-Проект настроен для автоматической сборки через GitHub Actions:
+- **Swift**: The application is built using Swift and the SwiftUI framework.
+- **EventKit**: Utilized for accessing and managing calendar events.
+- **AppKit**: Provides menu bar integration.
+- **UserNotifications**: Manages local notifications for event reminders.
+- **GitHub Actions**: Configured for CI/CD automation.
 
-- **Автоматическая сборка**: При каждом push в `main`/`master` и при создании pull request
-- **Релизы**: При создании тега версии (например, `v1.0.0`)
-- **Артефакты**: DMG-файл и .app bundle доступны для скачивания в разделе Actions
+## Installation
 
-Подробнее о workflows см. в [.github/workflows/README.md](.github/workflows/README.md)
+1. Download the `.dmg` file from the [Releases](https://github.com/Doka-NT/calendar-menu-app/releases) section.
+2. Double-click the `.dmg` file to open it.
+3. Drag the app to your Applications folder.
 
-## Лог чата
+## Usage
 
-Лог чата доступен по ссылке: https://chatgpt.com/share/9eaca5ed-ea34-48a5-a4eb-53529445d826
+1. Launch the app from your Applications folder.
+2. Grant access to your calendar and notifications when prompted.
+3. Click the calendar icon in the menu bar to view today's events.
+
+## Development
+
+### Prerequisites
+
+- macOS 12.0 or later
+- Xcode 13 or later
+
+### Building the Application
+
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/Doka-NT/calendar-menu-app.git
+   ```
+2. Open the project in Xcode:
+   ```bash
+   open CalendarMenuApp.xcodeproj
+   ```
+3. Build and run the project using the Xcode toolbar.
+
+## CI/CD Workflow
+
+The project is configured to use GitHub Actions for automated building and deployment:
+
+- **Automatic Builds**: Triggered on every push to `main` or `master` and on pull request creation.
+- **Releases**: Automatically created whenever a version tag (e.g., `v1.0.0`) is pushed.
+- **Artifacts**: Downloadable `.dmg` files and `.app` bundles are available in the Actions section.
+
+## License
+
+This project is licensed under the [MIT License](LICENSE).
