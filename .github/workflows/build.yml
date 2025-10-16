@@ -1,0 +1,73 @@
+name: Build macOS App
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  pull_request:
+    branches:
+      - main
+      - master
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build CalendarMenuApp
+    runs-on: macos-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Set up Xcode
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest-stable
+      
+      - name: Show Xcode version
+        run: xcodebuild -version
+      
+      - name: Build App
+        run: |
+          xcodebuild \
+            -scheme "CalendarMenuApp" \
+            -project CalendarMenuApp.xcodeproj \
+            -configuration Release \
+            -derivedDataPath build/DerivedData \
+            clean build \
+            CODE_SIGN_IDENTITY="-"
+      
+      - name: Locate built app
+        run: |
+          find build/DerivedData -name "*.app" -type d
+          APP_PATH=$(find build/DerivedData -name "CalendarMenuApp.app" -type d | head -n 1)
+          echo "APP_PATH=$APP_PATH" >> $GITHUB_ENV
+          echo "Found app at: $APP_PATH"
+      
+      - name: Prepare Release directory
+        run: |
+          mkdir -p build/Release
+          cp -R "$APP_PATH" build/Release/CalendarMenuApp.app
+      
+      - name: Create DMG
+        run: |
+          mkdir -p dist
+          hdiutil create -volname "CalendarMenuApp" \
+            -srcfolder build/Release/CalendarMenuApp.app \
+            -ov -format UDZO \
+            dist/CalendarMenuApp.dmg
+      
+      - name: Upload DMG artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: CalendarMenuApp-dmg
+          path: dist/CalendarMenuApp.dmg
+          retention-days: 30
+      
+      - name: Upload App artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: CalendarMenuApp-app
+          path: build/Release/CalendarMenuApp.app
+          retention-days: 30
