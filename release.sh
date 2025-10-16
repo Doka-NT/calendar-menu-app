@@ -22,6 +22,10 @@ echo "Preparing DMG structure..."
 mkdir -p "$BUILD_DIR/Release-dmg"
 cp -R "$1" "$BUILD_DIR/Release-dmg/$PROJECT_NAME.app"
 
+# Ad-hoc code signing to prevent "damaged" error on macOS
+echo "Ad-hoc signing application..."
+codesign --force --deep --sign - "$BUILD_DIR/Release-dmg/$PROJECT_NAME.app"
+
 # Создание DMG пакета
 echo "Creating DMG package..."
 hdiutil create -volname "$PROJECT_NAME" -srcfolder "$BUILD_DIR/Release-dmg" -ov -format UDZO "$RELEASE_DIR/$DMG_NAME"
