@@ -54,7 +54,9 @@ jobs:
             -configuration Release \
             -derivedDataPath build/DerivedData \
             clean build \
-            CODE_SIGN_IDENTITY="CalendarMenuApp Developer"
+            CODE_SIGN_STYLE=Manual \
+            CODE_SIGN_IDENTITY="CalendarMenuApp Developer" \
+            DEVELOPMENT_TEAM=""
       
       - name: Locate built app
         run: |
