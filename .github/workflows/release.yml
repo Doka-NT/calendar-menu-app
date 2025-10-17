@@ -59,11 +59,6 @@ jobs:
             -ov -format UDZO \
             dist/CalendarMenuApp.dmg
       
-      - name: Sign DMG
-        run: |
-          codesign --force --sign - dist/CalendarMenuApp.dmg
-          codesign --verify --verbose dist/CalendarMenuApp.dmg
-      
       - name: Get tag name
         id: get_tag
         run: |

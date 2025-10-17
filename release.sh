@@ -30,11 +30,6 @@ codesign --force --deep --sign - "$BUILD_DIR/Release-dmg/$PROJECT_NAME.app"
 echo "Creating DMG package..."
 hdiutil create -volname "$PROJECT_NAME" -srcfolder "$BUILD_DIR/Release-dmg" -ov -format UDZO "$RELEASE_DIR/$DMG_NAME"
 
-# Ad-hoc sign the DMG
-echo "Ad-hoc signing DMG..."
-codesign --force --sign - "$RELEASE_DIR/$DMG_NAME"
-codesign --verify --verbose "$RELEASE_DIR/$DMG_NAME"
-
 # Создание нового релиза на GitHub
 echo "Creating GitHub release..."
 NEW_TAG="v$(date +%Y%m%d%H%M%S)"

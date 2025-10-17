@@ -63,11 +63,6 @@ jobs:
             -ov -format UDZO \
             dist/CalendarMenuApp.dmg
       
-      - name: Sign DMG
-        run: |
-          codesign --force --sign - dist/CalendarMenuApp.dmg
-          codesign --verify --verbose dist/CalendarMenuApp.dmg
-      
       - name: Upload DMG artifact
         uses: actions/upload-artifact@v4
         with:
