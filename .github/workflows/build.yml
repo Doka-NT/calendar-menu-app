@@ -25,6 +25,27 @@ jobs:
         with:
           xcode-version: latest-stable
       
+      - name: Import Code Signing Certificate
+        env:
+          CERTIFICATE_BASE64: ${{ secrets.MACOS_CERTIFICATE }}
+          CERTIFICATE_PASSWORD: ${{ secrets.MACOS_CERTIFICATE_PWD }}
+          KEYCHAIN_PASSWORD: ${{ secrets.MACOS_CERTIFICATE_PWD }}
+        run: |
+          # Создаем временный keychain
+          KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
+          security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security set-keychain-settings -lut 21600 "$KEYCHAIN_PATH"
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          
+          # Импортируем сертификат
+          CERTIFICATE_PATH=$RUNNER_TEMP/cert.p12
+          echo "$CERTIFICATE_BASE64" | base64 --decode > "$CERTIFICATE_PATH"
+          security import "$CERTIFICATE_PATH" -P "$CERTIFICATE_PASSWORD" -A -t cert -f pkcs12 -k "$KEYCHAIN_PATH"
+          security list-keychain -d user -s "$KEYCHAIN_PATH"
+          
+          # Разрешаем codesign использовать сертификат без запроса пароля
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+      
       - name: Show Xcode version
         run: xcodebuild -version
       
@@ -36,7 +57,7 @@ jobs:
             -configuration Release \
             -derivedDataPath build/DerivedData \
             clean build \
-            CODE_SIGN_IDENTITY="-"
+            CODE_SIGN_IDENTITY="CalendarMenuApp Developer"
       
       - name: Locate built app
         run: |
@@ -50,9 +71,12 @@ jobs:
           mkdir -p build/Release
           cp -R "$APP_PATH" build/Release/CalendarMenuApp.app
       
-      - name: Ad-hoc sign the app
+      - name: Sign Application Bundle
         run: |
-          codesign --force --deep --sign - build/Release/CalendarMenuApp.app
+          echo "Signing application bundle..."
+          codesign --force --deep --sign "CalendarMenuApp Developer" build/Release/CalendarMenuApp.app
+          
+          echo "Verifying signature..."
           codesign --verify --verbose build/Release/CalendarMenuApp.app
       
       - name: Create DMG
@@ -76,3 +100,11 @@ jobs:
           name: CalendarMenuApp-app
           path: build/Release/CalendarMenuApp.app
           retention-days: 30
+      
+      - name: Cleanup Keychain
+        if: always()
+        run: |
+          KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
+          if [ -f "$KEYCHAIN_PATH" ]; then
+            security delete-keychain "$KEYCHAIN_PATH"
+          fi
