@@ -50,6 +50,11 @@ jobs:
           mkdir -p build/Release
           cp -R "$APP_PATH" build/Release/CalendarMenuApp.app
       
+      - name: Ad-hoc sign the app
+        run: |
+          codesign --force --deep --sign - build/Release/CalendarMenuApp.app
+          codesign --verify --verbose build/Release/CalendarMenuApp.app
+      
       - name: Create DMG
         run: |
           mkdir -p dist
@@ -57,6 +62,11 @@ jobs:
             -srcfolder build/Release/CalendarMenuApp.app \
             -ov -format UDZO \
             dist/CalendarMenuApp.dmg
+      
+      - name: Sign DMG
+        run: |
+          codesign --force --sign - dist/CalendarMenuApp.dmg
+          codesign --verify --verbose dist/CalendarMenuApp.dmg
       
       - name: Upload DMG artifact
         uses: actions/upload-artifact@v4
