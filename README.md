@@ -15,6 +15,7 @@ Calendar Menu App is a macOS application that adds a calendar to your menu bar, 
 - **Event Quick Actions**: Events with conference links open in the browser, and others open in the calendar app.
 - **Notifications**: Timely reminders for upcoming events.
 - **Customizable UI**: Events are styled with their respective calendar colors and icons.
+- **Custom conference domains**: Built‑in default domains (Yandex Telemost, SalutJazz, Jazz.Sber) plus ability to add your own domains that persist across restarts.
 
 ## Technologies Used
 
@@ -35,6 +36,11 @@ Calendar Menu App is a macOS application that adds a calendar to your menu bar, 
 1. Launch the app from your Applications folder.
 2. Grant access to your calendar and notifications when prompted.
 3. Click the calendar icon in the menu bar to view today's events.
+
+### Add custom conference domains
+
+- In the menu, choose "Добавить домен конференции…" and enter a domain like `zoom.us` or `meet.google.com`. You can paste a full URL — the domain will be extracted automatically.
+- To revert to defaults only, choose "Сбросить домены по умолчанию". Your custom list is stored in UserDefaults and survives app restarts.
 
 ## Development
 

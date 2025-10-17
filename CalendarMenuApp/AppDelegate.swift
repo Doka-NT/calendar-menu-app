@@ -17,6 +17,34 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         return .default
     }
     
+    // MARK: - Conference domains storage
+    // Default domains (kept from previous hardcoded values)
+    private let defaultConferenceDomains: [String] = [
+        "telemost.yandex.ru",
+        "telemost.360.yandex.ru",
+        "salutejazz.ru",
+        "jazz.sber.ru"
+    ]
+    
+    private let userDefaultsDomainsKey = "CustomConferenceDomains"
+    
+    private var customConferenceDomains: [String] {
+        get {
+            let arr = UserDefaults.standard.stringArray(forKey: userDefaultsDomainsKey) ?? []
+            return Array(Set(arr.map { $0.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() })).sorted()
+        }
+        set {
+            let normalized = Array(Set(newValue.map { $0.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() })).sorted()
+            UserDefaults.standard.set(normalized, forKey: userDefaultsDomainsKey)
+        }
+    }
+    
+    private var allConferenceDomains: [String] {
+        let defaults = defaultConferenceDomains.map { $0.lowercased() }
+        let customs = customConferenceDomains
+        return Array(Set(defaults + customs)).sorted()
+    }
+    
     func applicationDidFinishLaunching(_ notification: Notification) {
         // Создаем элемент строки меню
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
@@ -57,17 +85,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                     }
                     
                     // Извлекаем URL из описания события
-                    let menuItem: NSMenuItem
+                          let menuItem: NSMenuItem
                     
-                    let notes = event.notes
-                    
-                    if let description = event.notes,
-                       let url = extractURL(from: description),
-                       let urlString = url.absoluteString.lowercased() as NSString?,
-                       urlString.range(of: "telemost.360.yandex.ru").location != NSNotFound ||
-                       urlString.range(of: "telemost.yandex.ru").location != NSNotFound ||
-                       urlString.range(of: "salutejazz.ru").location != NSNotFound ||
-                       urlString.range(of: "jazz.sber.ru").location != NSNotFound {
+                          if let description = event.notes,
+                              let _ = extractURL(from: description) {
                         
                         // Добавляем иконку с телефоном к пункту меню
                         let phoneIcon = NSImage(named: NSImage.touchBarCommunicationVideoTemplateName)
@@ -93,7 +114,54 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             }
         }
         
-        menu.addItem(NSMenuItem.separator()) // Разделитель между событиями и кнопкой Quit
+    menu.addItem(NSMenuItem.separator()) // Разделитель между событиями и кнопкой Quit
+
+        // Настройки доменов конференций (подменю)
+        let domainsMenuItem = NSMenuItem(title: "Домены конференций", action: nil, keyEquivalent: "")
+        let domainsSubmenu = NSMenu(title: "Домены конференций")
+        
+        // Секция: Дефолтные (только чтение)
+        let defaultsHeader = NSMenuItem(title: "По умолчанию", action: nil, keyEquivalent: "")
+        defaultsHeader.isEnabled = false
+        domainsSubmenu.addItem(defaultsHeader)
+        for d in defaultConferenceDomains.sorted() {
+            let item = NSMenuItem(title: d, action: nil, keyEquivalent: "")
+            item.isEnabled = false
+            domainsSubmenu.addItem(item)
+        }
+        domainsSubmenu.addItem(NSMenuItem.separator())
+        
+        // Секция: Пользовательские (с удалением)
+        let customHeader = NSMenuItem(title: "Пользовательские", action: nil, keyEquivalent: "")
+        customHeader.isEnabled = false
+        domainsSubmenu.addItem(customHeader)
+        let customs = customConferenceDomains
+        if customs.isEmpty {
+            let empty = NSMenuItem(title: "(пусто)", action: nil, keyEquivalent: "")
+            empty.isEnabled = false
+            domainsSubmenu.addItem(empty)
+        } else {
+            for d in customs {
+                let removeItem = NSMenuItem(title: "Удалить: \(d)", action: #selector(removeCustomConferenceDomain(_:)), keyEquivalent: "")
+                removeItem.target = self
+                removeItem.representedObject = d
+                domainsSubmenu.addItem(removeItem)
+            }
+        }
+        
+        domainsSubmenu.addItem(NSMenuItem.separator())
+        
+        // Действия: добавить/сбросить
+        let addDomainItem = NSMenuItem(title: "Добавить домен…", action: #selector(addConferenceDomain), keyEquivalent: "")
+        addDomainItem.target = self
+        domainsSubmenu.addItem(addDomainItem)
+        let resetDomainsItem = NSMenuItem(title: "Сбросить пользовательские", action: #selector(resetConferenceDomains), keyEquivalent: "")
+        resetDomainsItem.target = self
+        domainsSubmenu.addItem(resetDomainsItem)
+        
+        domainsMenuItem.submenu = domainsSubmenu
+        menu.addItem(domainsMenuItem)
+        menu.addItem(NSMenuItem.separator())
 
         let quitMenuItem = NSMenuItem(title: "Quit", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
         menu.addItem(quitMenuItem)
@@ -102,6 +170,17 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         statusItem.menu = menu
         statusItem.button?.performClick(nil) // Показать меню при нажатии на иконку
         statusItem.menu = nil // Сбросить меню после показа
+    }
+
+    // Удаление одного пользовательского домена
+    @objc func removeCustomConferenceDomain(_ sender: NSMenuItem) {
+        guard let domain = sender.representedObject as? String else { return }
+        var updated = customConferenceDomains
+        if let idx = updated.firstIndex(of: domain) {
+            updated.remove(at: idx)
+            customConferenceDomains = updated
+        }
+        self.showMenu()
     }
     
     func loadEventsForToday() -> [EKEvent] {
@@ -135,14 +214,109 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func extractURL(from text: String) -> URL? {
-        let patterns = ["https://telemost.yandex.ru", "https://telemost.360.yandex.ru", "https://salutejazz.ru", "https://jazz.sber.ru"]
-        for pattern in patterns {
-            if let range = text.range(of: pattern) {
-                let urlString = text[range.lowerBound...].components(separatedBy: .whitespacesAndNewlines).first ?? ""
-                return URL(string: urlString)
+        // Try link detection first
+        if let detector = try? NSDataDetector(types: NSTextCheckingResult.CheckingType.link.rawValue) {
+            let range = NSRange(text.startIndex..<text.endIndex, in: text)
+            let matches = detector.matches(in: text, options: [], range: range)
+            for match in matches {
+                if let url = match.url, isConferenceURL(url) {
+                    return url
+                }
+            }
+        }
+        // Fallback: substring search using known domains
+        for domain in allConferenceDomains {
+            let patterns = ["https://\(domain)", "http://\(domain)"]
+            for pattern in patterns {
+                if let range = text.range(of: pattern) {
+                    let urlString = text[range.lowerBound...].components(separatedBy: .whitespacesAndNewlines).first ?? ""
+                    if let url = URL(string: urlString), isConferenceURL(url) {
+                        return url
+                    }
+                }
             }
         }
         return nil
+    }
+
+    private func isConferenceURL(_ url: URL) -> Bool {
+        guard let host = url.host?.lowercased() else { return false }
+        for domain in allConferenceDomains {
+            let d = domain.lowercased()
+            if host == d || host.hasSuffix("." + d) {
+                return true
+            }
+        }
+        return false
+    }
+
+    private func normalizeDomainInput(_ input: String) -> String? {
+        var trimmed = input.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        guard !trimmed.isEmpty else { return nil }
+        // If user pasted a full URL, extract host
+        if trimmed.hasPrefix("http://") || trimmed.hasPrefix("https://") {
+            if let url = URL(string: trimmed), let host = url.host?.lowercased() {
+                return host
+            }
+        }
+        // Remove leading www.
+        if trimmed.hasPrefix("www.") {
+            trimmed = String(trimmed.dropFirst(4))
+        }
+        // If contains path or spaces, attempt to parse as URL
+        if trimmed.contains("/") {
+            if let url = URL(string: "https://\(trimmed)"), let host = url.host?.lowercased() {
+                return host
+            }
+        }
+        // Very naive domain validation: must contain a dot
+        guard trimmed.contains(".") else { return nil }
+        return trimmed
+    }
+
+    // MARK: - Menu actions for managing domains
+    @objc func addConferenceDomain() {
+        let alert = NSAlert()
+        alert.messageText = "Добавить домен конференции"
+        alert.informativeText = "Например: zoom.us или meet.google.com. Можно вставить полную ссылку — домен извлечётся."
+        alert.alertStyle = .informational
+        alert.addButton(withTitle: "Добавить")
+        alert.addButton(withTitle: "Отмена")
+        let inputField = NSTextField(frame: NSRect(x: 0, y: 0, width: 280, height: 24))
+        inputField.placeholderString = "пример: zoom.us"
+        alert.accessoryView = inputField
+        let response = alert.runModal()
+        if response == .alertFirstButtonReturn {
+            let text = inputField.stringValue
+            if let domain = normalizeDomainInput(text) {
+                var updated = customConferenceDomains
+                if !updated.contains(domain) {
+                    updated.append(domain)
+                    customConferenceDomains = updated
+                }
+            } else {
+                let errorAlert = NSAlert()
+                errorAlert.messageText = "Некорректный домен"
+                errorAlert.informativeText = "Пожалуйста, укажите корректный домен, например: zoom.us"
+                errorAlert.alertStyle = .warning
+                errorAlert.addButton(withTitle: "OK")
+                errorAlert.runModal()
+            }
+            // Обновим меню после добавления
+            self.showMenu()
+        }
+    }
+
+    @objc func resetConferenceDomains() {
+        // Сбрасываем только пользовательские домены
+        customConferenceDomains = []
+        let alert = NSAlert()
+        alert.messageText = "Доменные настройки сброшены"
+        alert.informativeText = "Используются значения по умолчанию."
+        alert.alertStyle = .informational
+        alert.addButton(withTitle: "OK")
+        alert.runModal()
+        self.showMenu()
     }
     
     func createColorCircle(for calendar: EKCalendar) -> NSImage {
