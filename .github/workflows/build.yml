@@ -45,6 +45,11 @@ jobs:
           
           # Разрешаем codesign использовать сертификат без запроса пароля
           security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          
+          # Находим identity сертификата
+          CERT_IDENTITY=$(security find-identity -v -p codesigning "$KEYCHAIN_PATH" | head -1 | grep -o '"[^"]*"' | sed 's/"//g')
+          echo "CERT_IDENTITY=$CERT_IDENTITY" >> $GITHUB_ENV
+          echo "Found certificate identity: $CERT_IDENTITY"
       
       - name: Show Xcode version
         run: xcodebuild -version
@@ -58,7 +63,7 @@ jobs:
             -derivedDataPath build/DerivedData \
             clean build \
             CODE_SIGN_STYLE=Manual \
-            CODE_SIGN_IDENTITY="CalendarMenuApp Developer" \
+            CODE_SIGN_IDENTITY="${CERT_IDENTITY}" \
             DEVELOPMENT_TEAM=""
       
       - name: Locate built app
@@ -75,8 +80,8 @@ jobs:
       
       - name: Sign Application Bundle
         run: |
-          echo "Signing application bundle..."
-          codesign --force --deep --sign "CalendarMenuApp Developer" build/Release/CalendarMenuApp.app
+          echo "Signing application bundle with: ${CERT_IDENTITY}"
+          codesign --force --deep --sign "${CERT_IDENTITY}" build/Release/CalendarMenuApp.app
           
           echo "Verifying signature..."
           codesign --verify --verbose build/Release/CalendarMenuApp.app
