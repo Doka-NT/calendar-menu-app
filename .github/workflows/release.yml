@@ -25,6 +25,32 @@ jobs:
         with:
           xcode-version: latest-stable
       
+      - name: Import Code Signing Certificate
+        env:
+          CERTIFICATE_BASE64: ${{ secrets.MACOS_CERTIFICATE }}
+          CERTIFICATE_PASSWORD: ${{ secrets.MACOS_CERTIFICATE_PWD }}
+          KEYCHAIN_PASSWORD: ${{ secrets.MACOS_CERTIFICATE_PWD }}
+        run: |
+          # Создаем временный keychain
+          KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
+          security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security set-keychain-settings -lut 21600 "$KEYCHAIN_PATH"
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          
+          # Импортируем сертификат
+          CERTIFICATE_PATH=$RUNNER_TEMP/cert.p12
+          echo "$CERTIFICATE_BASE64" | base64 --decode > "$CERTIFICATE_PATH"
+          security import "$CERTIFICATE_PATH" -P "$CERTIFICATE_PASSWORD" -A -t cert -f pkcs12 -k "$KEYCHAIN_PATH"
+          security list-keychain -d user -s "$KEYCHAIN_PATH"
+          
+          # Разрешаем codesign использовать сертификат без запроса пароля
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          
+          # Находим identity сертификата
+          CERT_IDENTITY=$(security find-identity -v -p codesigning "$KEYCHAIN_PATH" | head -1 | grep -o '"[^"]*"' | sed 's/"//g')
+          echo "CERT_IDENTITY=$CERT_IDENTITY" >> $GITHUB_ENV
+          echo "Found certificate identity: $CERT_IDENTITY"
+      
       - name: Build App
         run: |
           xcodebuild \
@@ -33,7 +59,9 @@ jobs:
             -configuration Release \
             -derivedDataPath build/DerivedData \
             clean build \
-            CODE_SIGN_IDENTITY="-"
+            CODE_SIGN_STYLE=Manual \
+            CODE_SIGN_IDENTITY="${CERT_IDENTITY}" \
+            DEVELOPMENT_TEAM=""
       
       - name: Locate built app
         run: |
@@ -45,6 +73,14 @@ jobs:
         run: |
           mkdir -p build/Release
           cp -R "$APP_PATH" build/Release/CalendarMenuApp.app
+      
+      - name: Sign Application Bundle
+        run: |
+          echo "Signing application bundle with: ${CERT_IDENTITY}"
+          codesign --force --deep --sign "${CERT_IDENTITY}" build/Release/CalendarMenuApp.app
+          
+          echo "Verifying signature..."
+          codesign --verify --verbose build/Release/CalendarMenuApp.app
       
       - name: Create DMG
         run: |
@@ -74,3 +110,11 @@ jobs:
             dist/CalendarMenuApp.dmg
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Cleanup Keychain
+        if: always()
+        run: |
+          KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
+          if [ -f "$KEYCHAIN_PATH" ]; then
+            security delete-keychain "$KEYCHAIN_PATH"
+          fi

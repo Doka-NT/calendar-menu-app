@@ -30,6 +30,16 @@ Calendar Menu App is a macOS application that adds a calendar to your menu bar, 
 1. Download the `.dmg` file from the [Releases](https://github.com/Doka-NT/calendar-menu-app/releases) section.
 2. Double-click the `.dmg` file to open it.
 3. Drag the app to your Applications folder.
+4. **Important**: If macOS shows a security warning when first launching:
+   - Right-click (or Control-click) on the app in Applications folder
+   - Select "Open" from the context menu
+   - Click "Open" in the dialog that appears
+   - This only needs to be done once; subsequent launches will work normally
+
+Alternatively, you can allow the app in System Settings:
+- Go to System Settings → Privacy & Security
+- Scroll down to find the security message about CalendarMenuApp
+- Click "Open Anyway"
 
 ## Usage
 
